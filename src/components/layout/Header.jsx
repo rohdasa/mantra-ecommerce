@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import {
   Bell,
@@ -13,6 +13,7 @@ import {
 import Button from "../ui/Button";
 import { useAuthStore } from "../../store";
 import getInitials from "../../utils/getInitials";
+import { LocationContext } from "../../context/LocationContext";
 
 const PRODUCT_CATEGORIES = [
   {
@@ -75,16 +76,18 @@ const Header = () => {
   const [showCategories, setShowCategories] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  const { address } = useContext(LocationContext);
+
   // Refs for click outside handling
   const searchRef = useRef(null);
   const categoriesRef = useRef(null);
   const userMenuRef = useRef(null);
 
   // Get user data from store (we'll implement this later)
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   //Setting a Dummy User for testing
-  useEffect(() => {
+  const handleLogin = () => {
     // Set a dummy user for testing
     useAuthStore.getState().setAuth(
       {
@@ -93,7 +96,7 @@ const Header = () => {
       },
       "dummy-token"
     );
-  }, []);
+  };
 
   /**
    * Header Component with Navigation, Search, and User Actions
@@ -187,16 +190,29 @@ const Header = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const handleLogout = () => {
+    setShowUserMenu(false);
+    logout();
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
       {/* Top Bar - Location & Offers */}
-      <div className="hidden lg:block bg-gray-50 border-b border-gray-200">
-        <div className="flex items-center justify-between h-10 text-sm max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="flex items-center space-x-2 text-gray-600">
-            <MapPin className="w-4 h-4" />
-            <span>Deliver to: Mumbai 400001</span>
-          </p>
-          <p className="text-gray-600">Free shipping on orders above ₹999</p>
+      <div className="hidden md:block bg-gray-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-10 text-sm">
+            <div className="flex items-center space-x-2 text-gray-600">
+              <MapPin className="w-4 h-4" />
+              <span>
+                {address
+                  ? `Deliver to: ${address.city} ${address.pin}`
+                  : "Fetching location..."}
+              </span>
+            </div>
+            <div className="text-gray-600">
+              Free shipping on orders above ₹999
+            </div>
+          </div>
         </div>
       </div>
 
@@ -217,7 +233,11 @@ const Header = () => {
             )}
           </button>
           <div className="ml-2 md:ml-0">
-            <h1 className="text-2xl font-bold text-gradient-primary">MANTRA</h1>
+            <Link to="/">
+              <h1 className="text-2xl font-bold text-gradient-primary">
+                MANTRA
+              </h1>
+            </Link>
             <p className="text-xs text-gray-500 hidden sm:block">
               Fashion & Lifestyle
             </p>
@@ -387,7 +407,7 @@ const Header = () => {
               </button>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
+                <Button onClick={handleLogin} variant="outline" size="sm">
                   Login
                 </Button>
                 <Button size="sm" className="hidden sm:inline-flex">
@@ -434,6 +454,7 @@ const Header = () => {
                   <button
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                     role="menuitem"
+                    onClick={handleLogout}
                   >
                     Logout
                   </button>

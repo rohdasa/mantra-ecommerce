@@ -18,6 +18,14 @@
     scroll-behavior: smooth;
   }
 
+  /* Line clamp utility for product titles */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
@@ -34,6 +42,27 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
   }
+}
+
+/* Carousel specific styles */
+.carousel-slide {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth backdrop blur for carousel */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 /* Custom component styles */
@@ -135,6 +164,11 @@
     @apply w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105;
   }
 
+  /* Product card hover effects */
+  .product-card:hover .product-image {
+    transform: scale(1.05);
+  }
+
   /* Header styles */
   .header-glass {
     @apply bg-white/80 backdrop-blur-md border-b border-gray-200/50;
@@ -149,6 +183,10 @@
 /* Custom utilities */
 @layer utilities {
   /* Animations */
+  .animate-pulse-slow {
+    animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
   }
@@ -254,6 +292,16 @@
   }
   100% {
     background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 

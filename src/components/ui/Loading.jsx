@@ -42,9 +42,15 @@ const Loading = ({
 
   // Color configurations
   const colors = {
-    primary: "text-primary",
-    secondary: "text-gray-600",
+    primary: "text-primary-900",
+    secondary: "text-secondary-700",
     white: "text-white",
+  };
+
+  const bgColors = {
+    primary: "bg-primary-900",
+    secondary: "bg-secondary-700",
+    white: "bg-white",
   };
 
   // Base container styles
@@ -53,7 +59,7 @@ const Loading = ({
   // Full screen overlay
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
         <LoadingContent
           variant={variant}
           size={size}
@@ -61,6 +67,7 @@ const Loading = ({
           text={text}
           sizes={sizes}
           colors={colors}
+          bgColors={bgColors}
           containerStyles={containerStyles}
         />
       </div>
@@ -76,13 +83,22 @@ const Loading = ({
         text={text}
         sizes={sizes}
         colors={colors}
+        bgColors={bgColors}
       />
     </div>
   );
 };
 
 // Separate component for loading content to avoid duplication
-const LoadingContent = ({ variant, size, color, text, sizes, colors }) => {
+const LoadingContent = ({
+  variant,
+  size,
+  color,
+  text,
+  sizes,
+  colors,
+  bgColors,
+}) => {
   const renderLoadingVariant = () => {
     switch (variant) {
       case "spinner":
@@ -98,7 +114,7 @@ const LoadingContent = ({ variant, size, color, text, sizes, colors }) => {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className={`w-2 h-2 ${colors[color].replace(
+                className={`w-2 h-2 ${bgColors[color].replace(
                   "text-",
                   "bg-"
                 )} rounded-full animate-pulse`}
@@ -114,7 +130,7 @@ const LoadingContent = ({ variant, size, color, text, sizes, colors }) => {
       case "pulse":
         return (
           <div
-            className={`${sizes[size].spinner} ${colors[color].replace(
+            className={`${sizes[size].spinner} ${bgColors[color].replace(
               "text-",
               "bg-"
             )} rounded-full animate-pulse`}
@@ -161,12 +177,7 @@ const LoadingContent = ({ variant, size, color, text, sizes, colors }) => {
 };
 
 // Skeleton loading component for content placeholders
-const Skeleton = ({
-  lines = 3,
-  className = "",
-  animate = true,
-  width = "w-full",
-}) => {
+const Skeleton = ({ lines = 3, className = "", animate = true }) => {
   const animationClass = animate ? "animate-pulse" : "";
 
   return (
