@@ -1,6 +1,6 @@
 // src/pages/ProductDetail.jsx
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import {
   Heart,
   ShoppingCart,
@@ -33,6 +33,10 @@ const ProductDetail = () => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const variantNumber = parseInt(query.get("variant")) || 1;
+
   // Mock additional images for gallery
   const [productImages, setProductImages] = useState([]);
 
@@ -45,8 +49,11 @@ const ProductDetail = () => {
     try {
       setLoading(true);
 
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Fetch main product
       const productData = await productService.getProduct(id);
+
       setProduct(productData);
 
       // Create mock additional images (in real app, these would come from API)
@@ -58,23 +65,16 @@ const ProductDetail = () => {
       ];
       setProductImages(mockImages);
 
-      // Set default selections
-      //   if (productData.sizes && productData.sizes.length > 0) {
-      //     setSelectedSize(productData.sizes[0]);
-      //   }
-      //   if (productData.colors && productData.colors.length > 0) {
-      //     setSelectedColor(productData.colors[0]);
-      //   }
-
       // Fetch related products from same category
-      const relatedData = await productService.getProductsByCategory(
-        productData.category,
-        1,
-        4
-      );
-      setRelatedProducts(
-        relatedData.products.filter((p) => p.id !== parseInt(id))
-      );
+      // const relatedData = await productService.getProductsByCategory(
+      //   productData.category,
+      //   1,
+      //   4
+      // );
+
+      // setRelatedProducts(
+      //   relatedData.products.filter((p) => p.id !== parseInt(id))
+      // );
     } catch (err) {
       setError("Failed to load product details");
       console.error(err);
@@ -108,8 +108,8 @@ const ProductDetail = () => {
     };
 
     console.log("Adding to cart:", cartItem);
-    // TODO: Implement actual cart functionality
-    alert("Added to cart!");
+
+    alert(`Added to cart! ${selectedColor}, ${selectedSize}`);
     setSelectedColor("");
     setSelectedSize("");
   };
@@ -141,40 +141,58 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <a href="/" className="hover:text-gray-900">
-              Home
-            </a>
-            <ChevronRight size={16} />
-            <a href="#" className="hover:text-gray-900 capitalize">
-              {product.category}
-            </a>
-            <ChevronRight size={16} />
-            <span className="text-gray-900 font-medium">
-              {product.title.substring(0, 30)}...
-            </span>
-          </nav>
+      {product && (
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <nav className="flex items-center space-x-2 text-sm text-gray-600">
+              <a href="/" className="hover:text-gray-900">
+                Home
+              </a>
+              <ChevronRight size={16} />
+              <a href="#" className="hover:text-gray-900 capitalize">
+                {product.category}
+              </a>
+              <ChevronRight size={16} />
+              <span className="text-gray-900 font-medium">
+                {product?.title?.substring(0, 30)}...
+              </span>
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Product Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="relative grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-12">
           {/* Product Images */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="aspect-square bg-white rounded-lg overflow-hidden border transition-transform ease-in-out">
+            <div
+              style={{ height: "300px", width: "100%" }}
+              className="aspect-square p-5 bg-white rounded-lg overflow-hidden border transition-transform ease-in-out"
+            >
               <img
                 src={productImages[selectedImageIndex]}
                 alt={product.title}
-                className="relative w-full h-full object-cover"
-              />
+                className="relative w-full h-full object-contain"
+              />{" "}
+              <span
+                style={{
+                  position: "absolute",
+                  top: "5px",
+                  left: "2px",
+                  fontSize: "10px",
+                  background: "rgba(0, 0, 0, 0.8)",
+                  width: "12px",
+                  paddingLeft: "3px",
+                  color: "slategray",
+                }}
+              >
+                {selectedImageIndex + 1}
+              </span>
               {/* <span className="absolute top-2 left-2 bg-black text-white px-2 py-1 text-xs rounded">
                 Main Image #{selectedImageIndex + 1}
               </span> */}{" "}
-              // Testing with same images
             </div>
 
             {/* Thumbnail Images */}
@@ -186,16 +204,16 @@ const ProductDetail = () => {
                     setSelectedImageIndex(index);
                     console.log(index);
                   }}
-                  className={`aspect-square bg-white rounded-lg overflow-hidden border-2 transition-colors ${
+                  className={`aspect-square p-3 bg-white rounded-lg overflow-hidden border-2 transition-colors ${
                     selectedImageIndex === index
                       ? "border-blue-500"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <img
-                    src={image}
+                    src={product.image}
                     alt={`Product view ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </button>
               ))}
@@ -210,7 +228,7 @@ const ProductDetail = () => {
                 {product.brand}
               </p>
               <h1 className="text-3xl font-bold text-gray-900 mt-1">
-                {product.title}
+                {product.title} - Variant {variantNumber}
               </h1>
             </div>
 
@@ -219,11 +237,11 @@ const ProductDetail = () => {
               <div className="flex items-center space-x-1">
                 <RatingStars rating={product.rating} />
                 <span className="text-sm font-medium ml-2">
-                  {product.rating.rate}
+                  {product.rating}
                 </span>
               </div>
               <span className="text-sm text-gray-500">
-                ({product.rating.count} reviews)
+                ({product.reviewCount} reviews)
               </span>
             </div>
 
@@ -238,7 +256,7 @@ const ProductDetail = () => {
                     {formatPrice(product.originalPrice)}
                   </span>
                   <span className="bg-red-100 text-red-800 px-2 py-1 rounded-md text-sm font-medium">
-                    {product.discount}% OFF
+                    {Math.floor(product.discount)}% OFF
                   </span>
                 </>
               )}
@@ -295,7 +313,7 @@ const ProductDetail = () => {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`py-3 px-4 border rounded-md text-center transition-colors ${
+                      className={`py-3 px-2 border rounded-md text-center transition-colors ${
                         selectedSize === size
                           ? "border-gray-900 bg-gray-900 text-white"
                           : "border-gray-300 hover:border-gray-400"
@@ -319,7 +337,7 @@ const ProductDetail = () => {
                   <button
                     onClick={() => handleQuantityChange(-1)}
                     className="p-2 transition-colors"
-                    disabled={quantity <= 1}
+                    disabled={quantity <= 1 || !product?.inStock}
                   >
                     <Minus size={16} />
                   </button>
@@ -327,7 +345,7 @@ const ProductDetail = () => {
                   <button
                     onClick={() => handleQuantityChange(1)}
                     className="p-2 transition-colors"
-                    disabled={quantity >= 5}
+                    disabled={quantity >= 5 || !product?.inStock}
                   >
                     <Plus size={16} />
                   </button>
@@ -339,20 +357,20 @@ const ProductDetail = () => {
             <div className="flex space-x-4">
               <button
                 onClick={handleAddToCart}
-                className={`flex-1 py-4 px-6 rounded-md transition-colors flex items-center justify-center space-x-2 font-medium
-    ${
-      product.inStock
-        ? "bg-black text-white hover:bg-gray-800"
-        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-    }`}
-                disabled={!product.inStock}
+                disabled={!product?.inStock} // 👈 disable when out of stock
+                className={`flex-1 py-4 px-6 rounded-md transition-colors flex items-center justify-center space-x-2 font-medium 
+                  ${
+                    product?.inStock
+                      ? "bg-black text-white hover:bg-gray-800"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }
+                `}
               >
                 <ShoppingCart size={20} />
                 <span className="font-medium">
-                  {product.inStock ? "Add to Cart" : "Out of Stock"}
+                  {!product?.inStock ? "Out of Stock" : "Add to Cart"}
                 </span>
               </button>
-
               <button
                 onClick={() => setIsWishlisted(!isWishlisted)}
                 className={`p-4 border rounded-md transition-colors ${
@@ -415,7 +433,10 @@ const ProductDetail = () => {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
-                <ProductCard key={relatedProduct.id} product={relatedProduct} />
+                <ProductCard
+                  key={relatedProduct.variantId || relatedProduct.id}
+                  product={relatedProduct}
+                />
               ))}
             </div>
           </div>

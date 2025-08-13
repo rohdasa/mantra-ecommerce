@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Bell,
   ChevronDown,
   Heart,
   MapPin,
   Menu,
-  Search,
   ShoppingCart,
   X,
 } from "lucide-react";
@@ -14,77 +13,31 @@ import Button from "../ui/Button";
 import { useAuthStore } from "../../store";
 import getInitials from "../../utils/getInitials";
 import { LocationContext } from "../../context/LocationContext";
-
-const PRODUCT_CATEGORIES = [
-  {
-    id: 1,
-    name: "Men's Fashion",
-    slug: "mens-fashion",
-  },
-  {
-    id: 2,
-    name: "Women's Fashion",
-    slug: "womens-fashion",
-  },
-  {
-    id: 3,
-    name: "Electronics",
-    slug: "electronics",
-  },
-  {
-    id: 4,
-    name: "Home & Kitchen",
-    slug: "home-kitchen",
-  },
-  {
-    id: 5,
-    name: "Beauty & Personal Care",
-    slug: "beauty-personal-care",
-  },
-  {
-    id: 6,
-    name: "Sports & Fitness",
-    slug: "sports-fitness",
-  },
-  {
-    id: 7,
-    name: "Books & Stationery",
-    slug: "books-stationery",
-  },
-  {
-    id: 8,
-    name: "Mobiles & Accessories",
-    slug: "mobiles-accessories",
-  },
-];
-
-// Mock search suggestions (later we'll fetch from API)
-const MOCK_SUGGESTIONS = [
-  "iPhone 15",
-  "Nike Air Max",
-  "Samsung Galaxy",
-  "Adidas Shoes",
-  "MacBook Pro",
-];
+import SearchBar from "../common/SearchBar";
+import useEscapeKey from "../../hooks/useEscapeKey";
+import useClickOutside from "../../hooks/useClickOutside";
+import useCategories from "../../hooks/useCategories";
 
 const Header = () => {
   // State management
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const { address } = useContext(LocationContext);
+  const navigate = useNavigate();
 
   // Refs for click outside handling
-  const searchRef = useRef(null);
   const categoriesRef = useRef(null);
   const userMenuRef = useRef(null);
 
+  // Get user's location
+  const { address, locationError, getLocation } = useContext(LocationContext);
+
   // Get user data from store (we'll implement this later)
   const { user, isAuthenticated, logout } = useAuthStore();
+
+  // Get Categories
+  const { categories, loading: loadingCategories } = useCategories();
 
   //Setting a Dummy User for testing
   const handleLogin = () => {
@@ -111,73 +64,6 @@ const Header = () => {
    */
   // constants.js or directly in your component file (for now)
 
-  // Escape key to dismiss menus
-  useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === "Escape") {
-        setIsSearchFocused(false);
-        setShowCategories(false);
-        setShowUserMenu(false);
-      }
-    };
-    document.addEventListener("keydown", handleEsc);
-    return () => document.removeEventListener("keydown", handleEsc);
-  }, []);
-
-  // Handle search input changes
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-  };
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (searchQuery.trim().length > 0) {
-        const filtered = MOCK_SUGGESTIONS.filter((item) =>
-          item.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        setSearchSuggestions(filtered);
-      } else {
-        setSearchSuggestions([]);
-      }
-    }, 300); // Debounce time in ms
-
-    return () => clearTimeout(timeout); // Cleanup
-  }, [searchQuery]);
-
-  // Handle search submission
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      // Navigate to search results (we'll implement this with React Router later)
-      console.log("Searching for:", searchQuery);
-      setSearchSuggestions([]);
-      setIsSearchFocused(false);
-    }
-  };
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setIsSearchFocused(false);
-        setSearchSuggestions([]);
-      }
-      if (
-        categoriesRef.current &&
-        !categoriesRef.current.contains(event.target)
-      ) {
-        setShowCategories(false);
-      }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setShowUserMenu(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   // Close mobile menu when window is resized
   useEffect(() => {
     const handleResize = () => {
@@ -195,20 +81,45 @@ const Header = () => {
     logout();
   };
 
+  useEscapeKey(() => {
+    setShowCategories(false);
+    setShowUserMenu(false);
+  });
+
+  // Close categories dropdown on outside click
+  useClickOutside(categoriesRef, () => setShowCategories(false));
+
+  // Close user menu on outside click
+  useClickOutside(userMenuRef, () => setShowUserMenu(false));
+
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
       {/* Top Bar - Location & Offers */}
-      <div className="hidden md:block bg-gray-50 border-b border-gray-200">
+      <div className="hidden lg:block bg-gray-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-10 text-sm">
-            <div className="flex items-center space-x-2 text-gray-600">
-              <MapPin className="w-4 h-4" />
-              <span>
-                {address
-                  ? `Deliver to: ${address.city} ${address.pin}`
-                  : "Fetching location..."}
-              </span>
-            </div>
+            {!address ? (
+              <div
+                onClick={getLocation}
+                style={{
+                  cursor: "pointer",
+                  color: "#007bff",
+                  textDecoration: "underline",
+                }}
+                className="flex items-center space-x-2 text-gray-600"
+              >
+                <MapPin className="w-4 h-4" />
+                <span>
+                  {locationError ? locationError : "Tap to set location"}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2 text-gray-600">
+                <MapPin className="w-4 h-4" />
+                <span>{`Deliver to: ${address.city} ${address.pin}`}</span>
+              </div>
+            )}
+
             <div className="text-gray-600">
               Free shipping on orders above ₹999
             </div>
@@ -265,75 +176,29 @@ const Header = () => {
               role="menu"
               aria-label="Product categories"
             >
-              {PRODUCT_CATEGORIES.map((category) => (
-                <Link
-                  key={category.id}
-                  to={`/category/${category.slug}`}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600"
-                  onClick={() => setShowCategories(false)}
-                  role="menuitem"
-                >
-                  {category.name}
-                </Link>
-              ))}
+              {loadingCategories ? (
+                <p className="px-4 py-2 text-sm text-gray-500">
+                  Loading categories...
+                </p>
+              ) : (
+                categories?.map((category) => (
+                  <Link
+                    key={category.id}
+                    to={`/category/${category.slug}`}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-600 hover:bg-primary-50"
+                    onClick={() => setShowCategories(false)}
+                    role="menuitem"
+                  >
+                    {category.name}
+                  </Link>
+                ))
+              )}
             </div>
           )}
         </div>
 
         {/* Search bar */}
-        <div className="flex-1 max-w-xl md:mr-8 relative" ref={searchRef}>
-          <form onSubmit={handleSearchSubmit} role="search">
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
-                aria-hidden="true"
-              />
-              <input
-                type="text"
-                placeholder="Search for products, brands and more..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onFocus={() => setIsSearchFocused(true)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-gray-50 focus:bg-white"
-                aria-label="Search products"
-                aria-expanded={isSearchFocused && searchSuggestions.length > 0}
-                aria-controls="search-suggestions"
-                aria-autocomplete="list"
-              />
-            </div>
-          </form>
-
-          {/* Search Suggestions */}
-          {isSearchFocused && searchSuggestions.length > 0 && (
-            <div
-              id="search-suggestions"
-              className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-10"
-              role="listbox"
-              aria-label="Search suggestions"
-            >
-              {searchSuggestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600"
-                  onClick={() => {
-                    setSearchQuery(suggestion);
-                    setSearchSuggestions([]);
-                    setIsSearchFocused(false);
-                  }}
-                  role="option"
-                  aria-selected="false"
-                >
-                  <Search
-                    className="w-4 h-4 inline mr-2 text-gray-400"
-                    aria-hidden="true"
-                  />
-                  {suggestion}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
+        <SearchBar />
         {/* Navigation Icons */}
         <div className="flex items-center space-x-1 sm:space-x-4">
           {/* Notifications - Hidden on mobile */}
@@ -478,17 +343,21 @@ const Header = () => {
               <h3 className="text-sm font-medium text-gray-900 mb-2">
                 Categories
               </h3>
-              <div className="space-y-1">
-                {PRODUCT_CATEGORIES.slice(0, 6).map((category) => (
-                  <Link
-                    key={category.id}
-                    to={`/category/${category.slug}`}
-                    className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {category.name}
-                  </Link>
-                ))}
+              <div className="space-y-1 ">
+                {loadingCategories ? (
+                  <p className="text-sm text-gray-500">Loading categories...</p>
+                ) : (
+                  categories.slice(0, 6).map((category) => (
+                    <Link
+                      key={category.id}
+                      to={`/category/${category.slug}`}
+                      className="block px-3 py-2 text-sm text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {category.name}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
 

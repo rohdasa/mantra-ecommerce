@@ -1,4 +1,6 @@
+// src/services/productService.js
 import axios from "axios";
+import { paginate } from "../utils/pagination";
 import {
   getBrandFromCategory,
   getRandomColors,
@@ -14,91 +16,102 @@ const api = axios.create({
   timeout: 30000,
 });
 
+const fixImageUrl = (url) => {
+  if (!url) return "/fallback-image.png"; // If there's no URL at all
+
+  // Fix bad .jpg links by changing them to .png
+  if (url.endsWith(".jpg")) {
+    return url.replace(/\.jpg$/, "t.png");
+  }
+  return url;
+};
+
 // Transform the API data to match our needs
-const transformProduct = (product) => ({
-  id: product.id,
-  title: product.title,
-  price: product.price,
-  originalPrice: product.price * 1.2,
-  image: product.image,
-  category: product.category,
-  rating: product.rating,
-  description: product.description,
-  brand: getBrandFromCategory(product.category),
-  discount: Math.floor(Math.random() * 50) + 10,
-  isNew: Math.random() > 0.7,
-  isBestseller: Math.random() > 0.8,
-  colors: getRandomColors(),
-  sizes: getSizesForCategory(product.category),
-  inStock: Math.random() > 0.1,
-});
+const transformProduct = (product) => {
+  const originalPrice = product.price;
+  const discountPercentage = Math.floor(Math.random() * 30) + 10; // 10% - 40% discount
+  const discountedPrice = +(
+    originalPrice -
+    (originalPrice * discountPercentage) / 100
+  ).toFixed(2);
 
+  return {
+    id: product.id,
+    title: product.title,
+    description: product.description,
+    price: discountedPrice,
+    originalPrice,
+    discount: discountPercentage,
+    image: fixImageUrl(product.image),
+    category: product.category,
+    rating: product.rating.rate,
+    reviewCount: product.rating?.count || Math.floor(Math.random() * 200),
+    brand: getBrandFromCategory(product.category, product.id), // You can define this yourself
+    isNew: Math.random() < 0.3, // 30% chance of being new
+    isBestseller: Math.random() > 0.8, // 20% chance
+    colors: getRandomColors(), // from helpers
+    sizes: getSizesForCategory(product.category), // from helpers
+    inStock: Math.random() > 0.1, // 90% chance in stock
+  };
+};
+
+// Main API functions
 export const productService = {
-  getAllProducts: async (page = 1, limit = 20, cancelToken) => {
+  // Get all products with pagination simulation
+  getAllProducts: async (page = 1, limit = 10) => {
     try {
-      const response = await api.get("/products", { cancelToken });
-      const allProducts = response.data.map(transformProduct);
+      const response = await api.get("/products");
+      const productsArray = response?.data;
 
-      // Simulate pagination by duplicating and modifying products
-      const totalProducts = allProducts.length * 5;
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-
-      const expandedProducts = [];
-      for (let i = 0; i < totalProducts; i++) {
-        const originalProduct = allProducts[i % allProducts.length];
-        expandedProducts.push({
-          ...originalProduct,
-          id: i + 1,
-          title: `${originalProduct.title} - Variant ${
-            Math.floor(i / allProducts.length) + 1
-          }`,
-        });
+      if (!Array.isArray(productsArray)) {
+        throw new Error("Unexpected product data format from API.");
       }
 
-      const paginatedProducts = expandedProducts.slice(startIndex, endIndex);
+      const allProducts = productsArray.map(transformProduct);
 
-      return {
-        products: paginatedProducts,
-        pagination: {
-          currentPage: page,
-          totalPages: Math.ceil(totalProducts / limit),
-          totalProducts,
-          hasMore: endIndex < totalProducts,
-          limit,
-        },
-      };
+      const { items, pagination } = paginate(allProducts, page, limit);
+      return { products: items, pagination };
     } catch (error) {
-      if (axios.isCancel(error)) {
-        console.log("Request canceled:", error.message);
-      } else {
-        console.error("Error fetching products:", error);
-        throw error;
-      }
+      console.error("Error fetching products:", error);
+      throw error;
     }
   },
 
-  getProductsByCategory: async (category, page = 1, limit = 20) => {
+  // Get products by category
+  getProductsByCategory: async (category, page = 1, limit = 10) => {
     try {
       const response = await api.get(`/products/category/${category}`);
-      const products = response.data.map(transformProduct);
+      const productsArray = response.data;
+      //console.log(`Raw API response for category ${category}:`, productsArray);
 
-      return {
-        products,
-        pagination: {
-          currentPage: page,
-          totalPages: Math.ceil(products.length / limit),
-          totalProducts: products.length,
-          hasMore: page * limit < products.length,
-          limit,
-        },
-      };
+      if (!Array.isArray(productsArray)) {
+        throw new Error("Unexpected product data format from API.");
+      }
+
+      // if (productsArray.length === 0) {
+      //   console.warn(`No products found for category: ${category}`);
+      //   return {
+      //     products: [],
+      //     pagination: {
+      //       currentPage: page,
+      //       totalPages: 0,
+      //       totalProducts: 0,
+      //       hasMore: false,
+      //       limit,
+      //     },
+      //   };
+      // }
+      const products = productsArray.map(transformProduct);
+
+      const { items, pagination } = paginate(products, page, limit);
+      return { products: items, pagination };
     } catch (error) {
       console.error("Error fetching products by category:", error);
       throw error;
     }
   },
 
+  // Get single product
   getProduct: async (id) => {
     try {
       const response = await api.get(`/products/${id}`);
@@ -109,43 +122,43 @@ export const productService = {
     }
   },
 
+  // Get categories
   getCategories: async () => {
     try {
       const response = await api.get("/products/categories");
-      return response.data;
+
+      const data = response.data;
+      return data.map((category, index) => ({
+        id: index + 1,
+        name: category
+          .split(" ")
+          .map((word) => word[0].toUpperCase() + word.slice(1))
+          .join(" "),
+        slug: category.replace(/\s+/g, "-").toLowerCase(),
+      }));
     } catch (error) {
       console.error("Error fetching categories:", error);
       throw error;
     }
   },
 
-  searchProducts: async (query, page = 1, limit = 20) => {
+  // Search products (mock implementation)
+  searchProducts: async (query, page = 1, limit = 10) => {
     try {
       const allProductsResponse = await api.get("/products");
       const allProducts = allProductsResponse.data.map(transformProduct);
+      const normalizedQuery = query.trim().toLowerCase();
 
+      // Simple search implementation
       const filteredProducts = allProducts.filter(
         (product) =>
-          product.title.toLowerCase().includes(query.toLowerCase()) ||
-          product.category.toLowerCase().includes(query.toLowerCase()) ||
-          product.brand.toLowerCase().includes(query.toLowerCase())
+          product?.title?.toLowerCase().includes(normalizedQuery) ||
+          product?.category?.toLowerCase().includes(normalizedQuery) ||
+          product?.brand?.toLowerCase().includes(normalizedQuery)
       );
 
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-
-      return {
-        products: paginatedProducts,
-        pagination: {
-          currentPage: page,
-          totalPages: Math.ceil(filteredProducts.length / limit),
-          totalProducts: filteredProducts.length,
-          hasMore: endIndex < filteredProducts.length,
-          limit,
-        },
-        query,
-      };
+      const { items, pagination } = paginate(filteredProducts, page, limit);
+      return { products: items, pagination };
     } catch (error) {
       console.error("Error searching products:", error);
       throw error;

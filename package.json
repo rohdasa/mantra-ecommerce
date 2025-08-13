@@ -11,15 +11,17 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",
-    "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-query": "^5.84.1",
     "axios": "^1.11.0",
     "axios-retry": "^4.5.0",
+    "fuse.js": "^7.1.0",
     "lucide-react": "^0.528.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.61.1",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.7.1",
+    "use-debounce": "^10.0.5",
     "yup": "^1.6.1",
     "zustand": "^5.0.6"
   },

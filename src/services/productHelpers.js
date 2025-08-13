@@ -1,6 +1,6 @@
 // src/services/helpers/productHelpers.js
 
-export const getBrandFromCategory = (category) => {
+export const getBrandFromCategory = (category, productId) => {
   const brands = {
     "men's clothing": ["Nike", "Adidas", "Zara", "H&M", "Uniqlo"],
     "women's clothing": ["Zara", "H&M", "Forever 21", "Mango", "Vero Moda"],
@@ -8,7 +8,7 @@ export const getBrandFromCategory = (category) => {
     electronics: ["Apple", "Samsung", "Sony", "Xiaomi", "OnePlus"],
   };
   const categoryBrands = brands[category] || ["Generic"];
-  return categoryBrands[Math.floor(Math.random() * categoryBrands.length)];
+  return categoryBrands[productId % categoryBrands.length];
 };
 
 export const getRandomColors = () => {
@@ -27,7 +27,10 @@ export const getRandomColors = () => {
 };
 
 export const getSizesForCategory = (category) => {
-  if (category.includes("clothing")) {
+  if (
+    typeof category === "string" &&
+    category.toLowerCase().includes("clothing")
+  ) {
     return ["XS", "S", "M", "L", "XL", "XXL"];
   }
   if (category === "jewelery") {

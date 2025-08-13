@@ -8,7 +8,7 @@ export const LocationProvider = ({ children }) => {
   const [locationError, setLocationError] = useState("");
   const [address, setAddress] = useState(null); // ← NEW
 
-  useEffect(() => {
+  const getLocation = () => {
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by your browser.");
       return;
@@ -45,14 +45,20 @@ export const LocationProvider = ({ children }) => {
         }
       },
       (err) => {
-        setLocationError("Permission denied or location unavailable.");
+        setLocationError("Set your deilvery location");
         console.error(err);
       }
     );
+  };
+
+  useEffect(() => {
+    getLocation();
   }, []);
 
   return (
-    <LocationContext.Provider value={{ location, locationError, address }}>
+    <LocationContext.Provider
+      value={{ location, locationError, address, getLocation }}
+    >
       {children}
     </LocationContext.Provider>
   );
