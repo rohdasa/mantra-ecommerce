@@ -7,11 +7,6 @@ const SearchResultsPage = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q")?.trim() || "";
 
-  const title = useMemo(() => {
-    if (!query) return "Search";
-    return `Search Results for "${query}"`;
-  }, [query]);
-
   const fetchSearchResults = useCallback(
     (page, limit) => {
       return productService.searchProducts(query, page, limit);
@@ -19,7 +14,9 @@ const SearchResultsPage = () => {
     [query]
   );
 
-  return <ProductList fetchProductsFn={fetchSearchResults} title={title} />;
+  return (
+    <ProductList fetchProductsFn={fetchSearchResults} title="Search Results:" />
+  );
 };
 
 export default SearchResultsPage;

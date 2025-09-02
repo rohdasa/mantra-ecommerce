@@ -2,20 +2,6 @@ import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-/**
- * Modal Component with Portal and Focus Management
- *
- * Props:
- * - isOpen: boolean - controls modal visibility
- * - onClose: function - called when modal should close
- * - title: string - modal title
- * - size: 'sm', 'md', 'lg', 'xl', 'full' - modal size
- * - showCloseButton: boolean - show X button
- * - closeOnOverlayClick: boolean - close when clicking overlay
- * - closeOnEscape: boolean - close when pressing Escape
- * - children: modal content
- */
-
 const Modal = ({
   isOpen = false,
   onClose,
@@ -35,7 +21,7 @@ const Modal = ({
   const sizeClasses = {
     sm: "max-w-md",
     md: "max-w-lg",
-    lg: "max-w-2xl",
+    lg: "max-w-xl",
     xl: "max-w-4xl",
     full: "max-w-full mx-4",
   };
@@ -90,7 +76,7 @@ const Modal = ({
 
   // Modal content
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-80">
       {/* Backdrop/Overlay */}
       <div
         onClick={handleOverlayClick}
@@ -113,7 +99,7 @@ const Modal = ({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="relative p-6 border-b border-gray-200">
             {title && (
               <h2
                 id="modal-title"
@@ -125,7 +111,7 @@ const Modal = ({
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
                 aria-label="Close modal"
               >
                 <X aria-hidden="true" className="w-5 h-5 text-gray-500" />
@@ -135,9 +121,7 @@ const Modal = ({
         )}
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
-          {children}
-        </div>
+        <div className="">{children}</div>
       </div>
     </div>
   );

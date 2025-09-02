@@ -2,9 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import {
-  Heart,
-  ShoppingCart,
-  Star,
   Truck,
   RotateCcw,
   Shield,
@@ -18,6 +15,8 @@ import Loading from "../components/ui/Loading";
 import ProductCard from "../components/ui/ProductCard";
 import formatPrice from "../utils/formatPrice";
 import RatingStars from "../components/ui/shared/RatingStars";
+import WishlistButton from "../components/ui/shared/WishlistButton";
+import AddToCartButton from "../components/ui/shared/AddToCartButton";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -27,15 +26,13 @@ const ProductDetail = () => {
   const [error, setError] = useState(null);
 
   // Product interaction states
-  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedSize, setSelectedSize] = useState();
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const variantNumber = parseInt(query.get("variant")) || 1;
 
   // Mock additional images for gallery
   const [productImages, setProductImages] = useState([]);
@@ -44,6 +41,15 @@ const ProductDetail = () => {
     window.scrollTo({ top: 0, behavior: "auto" });
     fetchProductDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (product?.sizes?.length > 0) {
+      setSelectedSize(product.sizes[0]);
+    }
+    if (product?.colors?.length > 0) {
+      setSelectedColor(product.colors[0]);
+    }
+  }, [product]);
 
   const fetchProductDetails = async () => {
     try {
@@ -64,17 +70,6 @@ const ProductDetail = () => {
         productData.image,
       ];
       setProductImages(mockImages);
-
-      // Fetch related products from same category
-      // const relatedData = await productService.getProductsByCategory(
-      //   productData.category,
-      //   1,
-      //   4
-      // );
-
-      // setRelatedProducts(
-      //   relatedData.products.filter((p) => p.id !== parseInt(id))
-      // );
     } catch (err) {
       setError("Failed to load product details");
       console.error(err);
@@ -88,30 +83,6 @@ const ProductDetail = () => {
     if (newQuantity >= 1 && newQuantity <= 5) {
       setQuantity(newQuantity);
     }
-  };
-
-  const handleAddToCart = () => {
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-      alert("Please select a size");
-      return;
-    }
-    if (!selectedColor) {
-      alert("Please select a color");
-      return;
-    }
-
-    const cartItem = {
-      product,
-      size: selectedSize,
-      color: selectedColor,
-      quantity,
-    };
-
-    console.log("Adding to cart:", cartItem);
-
-    alert(`Added to cart! ${selectedColor}, ${selectedSize}`);
-    setSelectedColor("");
-    setSelectedSize("");
   };
 
   if (loading) {
@@ -149,7 +120,10 @@ const ProductDetail = () => {
                 Home
               </a>
               <ChevronRight size={16} />
-              <a href="#" className="hover:text-gray-900 capitalize">
+              <a
+                href={`/category/${product.category.toLowerCase()}`}
+                className="hover:text-gray-900 capitalize"
+              >
                 {product.category}
               </a>
               <ChevronRight size={16} />
@@ -228,7 +202,7 @@ const ProductDetail = () => {
                 {product.brand}
               </p>
               <h1 className="text-3xl font-bold text-gray-900 mt-1">
-                {product.title} - Variant {variantNumber}
+                {product.title}
               </h1>
             </div>
 
@@ -300,7 +274,34 @@ const ProductDetail = () => {
             )}
 
             {/* Size Selection */}
-            {product.sizes && product.sizes.length > 0 && (
+            {product.sizes &&
+              product.sizes.length > 0 &&
+              product.sizes[0] !== "One Size" && (
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">
+                    Size:
+                    <span className="font-normal text-gray-600 ml-2">
+                      {selectedSize}
+                    </span>
+                  </h3>
+                  <div className="grid grid-cols-6 gap-3">
+                    {product.sizes.map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`py-3 px-2 border rounded-md text-center transition-colors ${
+                          selectedSize === size
+                            ? "border-gray-900 bg-gray-900 text-white"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            {product.sizes[0] === "One Size" && (
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-3">
                   Size:
@@ -308,21 +309,6 @@ const ProductDetail = () => {
                     {selectedSize}
                   </span>
                 </h3>
-                <div className="grid grid-cols-6 gap-3">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`py-3 px-2 border rounded-md text-center transition-colors ${
-                        selectedSize === size
-                          ? "border-gray-900 bg-gray-900 text-white"
-                          : "border-gray-300 hover:border-gray-400"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
               </div>
             )}
 
@@ -355,35 +341,22 @@ const ProductDetail = () => {
 
             {/* Action Buttons */}
             <div className="flex space-x-4">
-              <button
-                onClick={handleAddToCart}
-                disabled={!product?.inStock} // 👈 disable when out of stock
-                className={`flex-1 py-4 px-6 rounded-md transition-colors flex items-center justify-center space-x-2 font-medium 
-                  ${
-                    product?.inStock
-                      ? "bg-black text-white hover:bg-gray-800"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }
-                `}
-              >
-                <ShoppingCart size={20} />
-                <span className="font-medium">
-                  {!product?.inStock ? "Out of Stock" : "Add to Cart"}
-                </span>
-              </button>
-              <button
-                onClick={() => setIsWishlisted(!isWishlisted)}
-                className={`p-4 border rounded-md transition-colors ${
-                  isWishlisted
-                    ? "border-red-500 bg-red-50 text-red-500"
-                    : "border-gray-300 hover:border-gray-400"
-                }`}
-              >
-                <Heart
-                  size={20}
-                  className={isWishlisted ? "fill-current" : ""}
+              <div className="relative w-full">
+                <AddToCartButton
+                  product={{
+                    ...product,
+                    quantity,
+                    selectedColor,
+                    selectedSize,
+                  }}
+                  alwaysVisible
+                  className="py-3"
                 />
-              </button>
+              </div>
+
+              <div className="flex items-center justify-center px-1 py-1 rounded border border-gray-300 hover:border-gray-400 transition-colors">
+                <WishlistButton size={24} product={product} alwaysVisible />
+              </div>
 
               <button className="p-4 border border-gray-300 rounded-md hover:border-gray-400 transition-colors">
                 <Share2 size={20} />

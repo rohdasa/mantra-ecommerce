@@ -63,3 +63,13 @@ export const LocationProvider = ({ children }) => {
     </LocationContext.Provider>
   );
 };
+
+export const useLocationContext = () => {
+  const context = React.useContext(LocationContext);
+  if (!context) {
+    throw new Error(
+      "useLocationContext must be used within a LocationProvider"
+    );
+  }
+  return context;
+};

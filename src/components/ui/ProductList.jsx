@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import ProductCard from "./ProductCard";
 import Loading from "./Loading";
-import { Grid2X2, Grid3X3, Loader2 } from "lucide-react";
+import { Grid2X2, Grid3X3, Loader2, ShoppingCart } from "lucide-react";
 import { useProductList } from "../../hooks/useProductList";
 
 const MAX_PRODUCTS = 20;
@@ -12,7 +12,7 @@ const layouts = {
   wide: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
 };
 
-const ProductList = ({ fetchProductsFn, title = "Products" }) => {
+const ProductList = ({ fetchProductsFn, title = "Products", renderAction }) => {
   const [gridCols, setGridCols] = useState("wide");
   const [isWideLayout, setIsWideLayout] = useState(true);
 
@@ -59,11 +59,10 @@ const ProductList = ({ fetchProductsFn, title = "Products" }) => {
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">{title}</h2>
-            </div>
+            <h2 className="flex text-xl font-bold text-gray-900">{title}</h2>
+
             <div className="flex items-center gap-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-700">
+              <div className="space-x-2 text-sm text-gray-700">
                 <button className="px-2 py-1 rounded-md border border-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors">
                   Filter
                 </button>
@@ -102,16 +101,20 @@ const ProductList = ({ fetchProductsFn, title = "Products" }) => {
 
           <div className={`grid gap-6 ${layouts[gridCols]}`}>
             {products.map((product, index) => (
-              <ProductCard key={`${product.id}-${index}`} product={product} />
+              <ProductCard
+                key={`${product.id}-${index}`}
+                product={product}
+                renderAction={renderAction}
+              />
             ))}
           </div>
 
           {products.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <p className="text-lg">
-                No products found. Try adjusting your filters or come back
-                later.
-              </p>
+            <div className="flex flex-col items-center justify-center">
+              <div className="ml-2 md:ml-0">
+                <ShoppingCart size={80} />
+              </div>
+              <p className="text-lg">No products found.</p>
             </div>
           )}
 
@@ -127,7 +130,7 @@ const ProductList = ({ fetchProductsFn, title = "Products" }) => {
             </div>
           )}
 
-          {!pagination.hasMore && products.length > 0 && (
+          {!pagination.hasMore && products.length > 10 && (
             <div className="text-center py-8">
               <p className="text-gray-600">
                 You've seen all {products.length} products! 🎉

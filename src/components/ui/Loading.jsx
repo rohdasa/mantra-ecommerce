@@ -1,18 +1,6 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
 
-/**
- * Loading Component with Multiple Variants
- *
- * Props:
- * - variant: 'spinner', 'dots', 'pulse', 'skeleton', 'overlay'
- * - size: 'sm', 'md', 'lg'
- * - color: 'primary', 'secondary', 'white'
- * - text: optional loading text
- * - fullScreen: boolean - covers entire screen
- * - className: additional CSS classes
- */
-
 const Loading = ({
   variant = "spinner",
   size = "md",

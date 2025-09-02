@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import useEscapeKey from "../../hooks/useEscapeKey";
 import useSearchSuggestions from "../../hooks/useSearchSuggestions";
 import Loading from "../ui/Loading";
+import Input from "../ui/Input";
 
-const SearchBar = () => {
+const SearchBar = ({ onClose }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const SearchBar = () => {
   const handleSelectSuggestion = (suggestion) => {
     setSearchQuery("");
     setShowSuggestions(false);
+    if (onClose) onClose();
 
     if (suggestion.type === "Category") {
       const slug = suggestion.label.toLowerCase().replace(/\s+/g, "-");
@@ -32,29 +34,26 @@ const SearchBar = () => {
     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     setSearchQuery("");
     setShowSuggestions(false);
+    if (onClose) onClose();
   };
 
   return (
-    <div className="flex-1 max-w-xl md:mr-8 relative">
+    <div className="flex-1 max-w-xl lg:mr-8 relative">
       <form onSubmit={handleSearchSubmit} role="search">
         <div className="relative">
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
-            aria-hidden="true"
-          />
-          <input
+          <Input
             type="text"
             placeholder="Search for products, brands and more..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-gray-50 focus:bg-white"
             aria-label="Search products"
             aria-expanded={showSuggestions && suggestions.length > 0}
             aria-controls="search-suggestions"
             aria-autocomplete="list"
             autoComplete="off"
+            leftIcon={Search}
           />
         </div>
       </form>

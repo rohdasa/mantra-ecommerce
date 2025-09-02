@@ -1,68 +1,82 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useLocation as routeLocation,
+  useNavigate,
+} from "react-router-dom";
 import {
   Bell,
   ChevronDown,
   Heart,
+  LogOut,
   MapPin,
   Menu,
+  Search,
   ShoppingCart,
+  User,
   X,
 } from "lucide-react";
 import Button from "../ui/Button";
-import { useAuthStore } from "../../store";
 import getInitials from "../../utils/getInitials";
+import useAuthStore from "../../store/authStore";
 import { LocationContext } from "../../context/LocationContext";
 import SearchBar from "../common/SearchBar";
 import useEscapeKey from "../../hooks/useEscapeKey";
 import useClickOutside from "../../hooks/useClickOutside";
 import useCategories from "../../hooks/useCategories";
+import { getCartStore } from "../../store/cartStore";
+import { getWishlistStore } from "../../store/wishlistStore";
 
-const Header = () => {
+const Header = ({ onOpenLogin }) => {
   // State management
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
-  const navigate = useNavigate();
+  // Get user data from store
+  const { user, isAuthenticated, logout } = useAuthStore();
+
+  let useCartStore;
+  let useWishlistStore;
+
+  try {
+    useCartStore = getCartStore();
+  } catch (e) {
+    console.error("Cart store not initialized");
+  }
+
+  const cart = useCartStore((state) => state.cart);
+  const cartCount = cart?.length || 0;
+  const hasHydrated = useCartStore((state) => state._hasHydrated);
+
+  try {
+    useWishlistStore = getWishlistStore();
+  } catch (e) {
+    console.error("Wishlist store not initialized");
+  }
+  const wishlist = useWishlistStore((state) => state.wishlist);
+  const wishlistCount = wishlist?.length || 0;
+  const _hasHydrated = useWishlistStore((state) => state._hasHydrated);
+
+  if (!_hasHydrated || !hasHydrated) {
+    console.error("Cart store not initialized");
+  }
 
   // Refs for click outside handling
   const categoriesRef = useRef(null);
   const userMenuRef = useRef(null);
+  const mobileSearchRef = useRef(null);
 
   // Get user's location
   const { address, locationError, getLocation } = useContext(LocationContext);
 
-  // Get user data from store (we'll implement this later)
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const handleLogout = () => {
+    logout();
+  };
 
   // Get Categories
   const { categories, loading: loadingCategories } = useCategories();
-
-  //Setting a Dummy User for testing
-  const handleLogin = () => {
-    // Set a dummy user for testing
-    useAuthStore.getState().setAuth(
-      {
-        name: "Arun Soman",
-        email: "arunsmn@example.com",
-      },
-      "dummy-token"
-    );
-  };
-
-  /**
-   * Header Component with Navigation, Search, and User Actions
-   *
-   * Features:
-   * - Responsive navigation
-   * - Search functionality with suggestions
-   * - User authentication state
-   * - Shopping cart indicator
-   * - Mobile menu
-   * - Categories dropdown
-   */
-  // constants.js or directly in your component file (for now)
 
   // Close mobile menu when window is resized
   useEffect(() => {
@@ -76,11 +90,6 @@ const Header = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleLogout = () => {
-    setShowUserMenu(false);
-    logout();
-  };
-
   useEscapeKey(() => {
     setShowCategories(false);
     setShowUserMenu(false);
@@ -91,6 +100,9 @@ const Header = () => {
 
   // Close user menu on outside click
   useClickOutside(userMenuRef, () => setShowUserMenu(false));
+
+  // Hide Search bar on outside tap on mobile
+  useClickOutside(mobileSearchRef, () => setShowMobileSearch(false));
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
@@ -156,7 +168,7 @@ const Header = () => {
         </div>
 
         {/* Categories Dropdown - Desktop*/}
-        <div className="hidden lg:block relative" ref={categoriesRef}>
+        <div className="hidden md:block relative" ref={categoriesRef}>
           <button
             className="flex items-center space-x-1 mr-4 px-4 py-2 text-gray-700 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
             onClick={() => setShowCategories(!showCategories)}
@@ -198,12 +210,36 @@ const Header = () => {
         </div>
 
         {/* Search bar */}
-        <SearchBar />
+
+        {/* Mobile Search Dropdown (when toggled) */}
+        {showMobileSearch && (
+          <div
+            ref={mobileSearchRef}
+            className="md:hidden absolute top-full left-0 right-0 bg-white p-3 z-50 border-b border-gray-200 shadow"
+          >
+            <SearchBar autoFocus onClose={() => setShowMobileSearch(false)} />
+          </div>
+        )}
+
+        {/* Medium and Large device search bar */}
+        <div className="flex hidden md:block flex-1">
+          <SearchBar />
+        </div>
         {/* Navigation Icons */}
         <div className="flex items-center space-x-1 sm:space-x-4">
+          {/* Mobile menu search bar */}
+          <div className="md:hidden space-x-0">
+            <button
+              className="p-2"
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+              aria-label="Search"
+            >
+              <Search size={20} />
+            </button>
+          </div>
           {/* Notifications - Hidden on mobile */}
           <button
-            className="hidden md:flex items-center space-x-1 p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all relative"
+            className="flex items-center space-x-1 p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all relative"
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5" aria-hidden="true" />
@@ -216,34 +252,52 @@ const Header = () => {
           </button>
 
           {/* Wishlist */}
-          <button
+          <Link
+            to="/wishlist"
             className="flex items-center space-x-1 p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all relative"
             aria-label="Wishlist"
           >
             <Heart className="w-5 h-5" aria-hidden="true" />
             <span className="hidden sm:inline">Wishlist</span>
-            <span
-              className="absolute -top-1 -right-1 bg-secondary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-              aria-hidden="true"
-            >
-              2
-            </span>
-          </button>
+            {wishlistCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 bg-secondary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                aria-hidden="true"
+              >
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
 
           {/* Shopping Cart */}
-          <button
+          <Link
+            to="/cart"
             className="flex items-center space-x-1 p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all relative"
             aria-label="Shopping cart"
           >
-            <ShoppingCart className="w-5 h-5" aria-hidden="true" />
+            <ShoppingCart className="w-6 h-6" aria-hidden="true" />
             <span className="hidden sm:inline">Cart</span>
-            <span
-              className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-              aria-hidden="true"
-            >
-              5
-            </span>
-          </button>
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                aria-hidden="true"
+              >
+                {cartCount}
+              </span>
+            )}
+          </Link>
+          {!isAuthenticated && (
+            <div className="md:hidden flex items-center space-x-2">
+              <button
+                onClick={onOpenLogin}
+                className="flex flex-col pl-2 items-center text-gray-700 hover:text-primary-600 transition-colors"
+              >
+                <User className="w-6 h-6 mb-1" />
+                {/* Adjust size and spacing */}
+                <span className="text-xs font-medium">Login</span>
+              </button>
+            </div>
+          )}
 
           {/* User Menu */}
           <div className="flex items-center space-x-2" ref={userMenuRef}>
@@ -264,19 +318,21 @@ const Header = () => {
                     {getInitials(user?.name) || "User"}
                   </span>
                 </div>
-                <span className="hidden lg:inline">{user?.name || "User"}</span>
+                <span className="hidden lg:inline">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {user?.name || "User"}
+                  </p>
+                </span>
+
                 <ChevronDown
                   className="w-4 h-4 hidden lg:inline"
                   aria-hidden="true"
                 />
               </button>
             ) : (
-              <div className="flex items-center space-x-2">
-                <Button onClick={handleLogin} variant="outline" size="sm">
-                  Login
-                </Button>
-                <Button size="sm" className="hidden sm:inline-flex">
-                  Sign Up
+              <div className="hidden md:block flex items-center space-x-2">
+                <Button onClick={onOpenLogin} variant="outline" size="sm">
+                  Login / Sign Up
                 </Button>
               </div>
             )}
@@ -317,10 +373,11 @@ const Header = () => {
                 </Link>
                 <div className="border-t border-gray-100 mt-2 pt-2">
                   <button
-                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                    className="flex gap-2 w-full text-left px-4 py-2 text-sm text-semibold text-red-600 hover:bg-gray-50"
                     role="menuitem"
                     onClick={handleLogout}
                   >
+                    <LogOut className="" size={18} />
                     Logout
                   </button>
                 </div>
@@ -329,6 +386,7 @@ const Header = () => {
           </div>
         </div>
       </div>
+
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div

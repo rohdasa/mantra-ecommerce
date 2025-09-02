@@ -21,9 +21,17 @@
   /* Line clamp utility for product titles */
   .line-clamp-2 {
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  /* src/index.css or tailwind.css */
+  input:-webkit-autofill {
+    @apply bg-white text-black;
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    -webkit-text-fill-color: black !important;
   }
 
   /* Custom scrollbar */
@@ -303,6 +311,21 @@ input:focus-visible {
   50% {
     opacity: 0.5;
   }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }
 
 /* Responsive design improvements */

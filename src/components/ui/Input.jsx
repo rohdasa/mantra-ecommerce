@@ -2,24 +2,6 @@ import React, { forwardRef, useState } from "react";
 import { useId } from "react";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
-/**
- * Reusable Input Component
- *
- * Props:
- * - type: 'text', 'email', 'password', 'number', 'tel', etc.
- * - placeholder: placeholder text
- * - value: controlled input value
- * - onChange: change handler function
- * - error: error message string
- * - disabled: boolean
- * - required: boolean
- * - label: input label
- * - helperText: additional help text
- * - leftIcon: icon component to show on left
- * - rightIcon: icon component to show on right
- * - className: additional CSS classes
- */
-
 const Input = forwardRef(
   (
     {
@@ -53,12 +35,12 @@ const Input = forwardRef(
 
     // Base input styles
     const baseInputStyles =
-      "w-full px-3 py-2 border rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed";
+      "w-full py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-gray-50 focus:bg-white";
 
     // Conditional styles based on state
     const inputStyles = error
-      ? `${baseInputStyles} border-red-300 focus:ring-red-500 focus:border-red-500`
-      : `${baseInputStyles} border-gray-300 focus:ring-primary-500 focus:border-primary-500`;
+      ? `${baseInputStyles}  focus:ring-red-500 focus:border-red-500`
+      : `${baseInputStyles}  focus:ring-primary-500 focus:border-primary-500`;
 
     // Handle icon padding
     const paddingStyles = `${LeftIcon ? "pl-10" : ""} ${
@@ -98,7 +80,7 @@ const Input = forwardRef(
             placeholder={placeholder}
             disabled={disabled}
             required={required}
-            className={`${inputStyles} ${paddingStyles}`}
+            className={`${inputStyles} ${paddingStyles} ${className}`}
             {...props}
           />
 

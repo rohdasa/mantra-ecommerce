@@ -4,17 +4,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import formatPrice from "../../utils/formatPrice";
 import RatingStars from "./shared/RatingStars";
+import WishlistButton from "./shared/WishlistButton";
 
-const ProductCard = ({ product, className = "" }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+const ProductCard = ({ product, className = "", renderAction }) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
-
-  const handleWishlistToggle = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-  };
 
   return (
     <Link
@@ -24,6 +18,8 @@ const ProductCard = ({ product, className = "" }) => {
       <div className="relative">
         {/* Image */}
         <div className="aspect-square bg-gray-100 overflow-hidden p-5">
+          {/* Optional renderAction */}
+
           <img
             src={product.image}
             alt={product.title}
@@ -66,16 +62,7 @@ const ProductCard = ({ product, className = "" }) => {
         </div>
 
         {/* Wishlist Button */}
-        <button
-          onClick={handleWishlistToggle}
-          className={`absolute top-2 right-2 p-2 rounded-full transition-colors bg-slate-200`}
-        >
-          <Heart
-            className={`h-4 w-4 ${
-              isWishlisted ? "text-pink-600 fill-pink-600" : ""
-            }`}
-          />
-        </button>
+        <WishlistButton size={16} product={product} isCard />
       </div>
 
       {/* Product Info */}
