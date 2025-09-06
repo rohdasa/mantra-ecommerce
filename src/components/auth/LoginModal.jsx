@@ -123,29 +123,26 @@ const LoginModal = ({ onClose, onLoginSuccess, isOpen }) => {
           </Button>
         </form>
 
-        {/* Test User Info (Development Only) */}
-        {process.env.NODE_ENV === "development" && (
-          <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <h4 className="font-semibold text-yellow-800 text-sm mb-2">
-              Test Users (Development):
-            </h4>
-            <div className="space-y-2 text-xs text-yellow-700">
-              {getMockUsers().map((user) => (
-                <div key={user.id} className="flex justify-between">
-                  <span>{user.name}:</span>
-                  <span>
-                    {user.phone} | {user.email}
-                  </span>
-                </div>
-              ))}
-              <div className="pt-2 border-t border-yellow-200">
-                <span className="font-mono font-bold">
-                  Mock OTP: {getMockOTP()}
+        <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <h4 className="font-semibold text-yellow-800 text-sm mb-2">
+            Test Users:
+          </h4>
+          <div className="space-y-2 text-xs text-yellow-700">
+            {getMockUsers().map((user) => (
+              <div key={user.id} className="flex justify-between">
+                <span>{user.name}:</span>
+                <span>
+                  {user.phone} | {user.email}
                 </span>
               </div>
+            ))}
+            <div className="pt-2 border-t border-yellow-200">
+              <span className="font-mono font-bold">
+                Mock OTP: {getMockOTP()}
+              </span>
             </div>
           </div>
-        )}
+        </div>
       </Modal.Body>
     </Modal>
   );

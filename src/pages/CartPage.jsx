@@ -3,7 +3,7 @@ import Button from "../components/ui/Button";
 import { ShoppingCart } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import { TiDelete } from "react-icons/ti";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import formatPrice from "../utils/formatPrice";
 import Select from "../components/ui/shared/Select";
 import { getCartStore } from "../store/cartStore";
@@ -21,6 +21,7 @@ function CartPage({ onOpenLogin }) {
   const updateColor = useCartStore((state) => state.updateColor);
   const updateSize = useCartStore((state) => state.updateSize);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
