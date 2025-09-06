@@ -58,6 +58,10 @@ const LoginModal = ({ onClose, onLoginSuccess, isOpen }) => {
     return <User className="w-5 h-5 text-gray-400" />;
   };
 
+  const formatPhoneForDisplay = (phone) => {
+    return phone?.replace(/^\+91/, ""); // e.g. "+918888888888" → "8888888888"
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -131,7 +135,7 @@ const LoginModal = ({ onClose, onLoginSuccess, isOpen }) => {
               <div key={user.id} className="flex justify-between">
                 <span>{user.name}:</span>
                 <span>
-                  {user.phone} | {user.email}
+                  {formatPhoneForDisplay(user.phone)} | {user.email}
                 </span>
               </div>
             ))}
