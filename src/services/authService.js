@@ -57,7 +57,7 @@ const mockUsers = [
 // Configuration
 const CONFIG = {
   MOCK_OTP: "123456",
-  OTP_EXPIRY_TIME: 5, // 5 minutes
+  OTP_EXPIRY_TIME: 300, // 5 minutes
   OTP_RESEND_DELAY: 30, // 30 seconds
   API_DELAY: 1000, // Simulate API delay
 };
