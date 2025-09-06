@@ -2,7 +2,7 @@
 const mockUsers = [
   {
     id: 1,
-    phone: "+918888888888",
+    phone: "8888888888",
     email: "john@example.com",
     name: "John Doe",
     avatar:
@@ -12,7 +12,7 @@ const mockUsers = [
         id: 1,
         type: "home",
         name: "John Doe",
-        phone: "+918888888888",
+        phone: "8888888888",
         address: "123 MG Road, Koramangala",
         city: "Bengaluru",
         state: "Karnataka",
@@ -28,7 +28,7 @@ const mockUsers = [
   },
   {
     id: 2,
-    phone: "+919999999999",
+    phone: "9999999999",
     email: "jane@example.com",
     name: "Jane Smith",
     avatar:
@@ -38,7 +38,7 @@ const mockUsers = [
         id: 1,
         type: "home",
         name: "Jane Smith",
-        phone: "+919999999999",
+        phone: "9999999999",
         address: "456 Brigade Road, Church Street",
         city: "Bengaluru",
         state: "Karnataka",

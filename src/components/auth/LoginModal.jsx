@@ -1,6 +1,5 @@
-// src/components/auth/LoginModal.jsx
 import { useState, useEffect } from "react";
-import { X, Phone, Mail, CheckCircle, User } from "lucide-react";
+import { Phone, Mail, CheckCircle, User } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
