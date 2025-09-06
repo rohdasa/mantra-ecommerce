@@ -4,6 +4,7 @@ import { getWishlistStore } from "../../../store/wishlistStore";
 
 const WishlistButton = ({ product, size, isCard }) => {
   const { isAuthenticated } = useAuthStore();
+
   const useWishlistStore = getWishlistStore();
 
   const hasHydrated = useWishlistStore((state) => state._hasHydrated);
@@ -28,12 +29,12 @@ const WishlistButton = ({ product, size, isCard }) => {
     }
   };
   return (
-    <div>
+    <div className="group">
       <button
         type="button"
         aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
         onClick={handleWishlistToggle}
-        className={`p-2 hover:bg-gray-50 ${
+        className={`p-2 hover:bg-gray-50 group-hover:scale-110 ${
           isCard
             ? "absolute top-2 right-2 rounded-full bg-white shadow-md"
             : "rounded-md"

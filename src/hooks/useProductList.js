@@ -1,11 +1,10 @@
-// hooks/useProductList.js
 import { useState, useEffect, useRef, useCallback } from "react";
 import { updatePagination } from "./paginationUtils";
 import useInfiniteScroll from "./useInfiniteScroll";
 
 const MAX_PRODUCTS = 20;
 
-export const useProductList = (fetchProductsFn) => {
+export const useProductList = (fetchProductsFn, sortBy) => {
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({
     currentPage: 0,
@@ -24,7 +23,7 @@ export const useProductList = (fetchProductsFn) => {
     page === 1 ? setLoading(true) : setLoadingMore(true);
 
     try {
-      const response = await fetchProductsFn(page, 10);
+      const response = await fetchProductsFn(page, 10, sortBy);
       const newProducts = response.products;
 
       setProducts((prev) =>
@@ -56,7 +55,7 @@ export const useProductList = (fetchProductsFn) => {
   // Load first page on mount or when fetch function changes
   useEffect(() => {
     loadProducts(1);
-  }, [fetchProductsFn]);
+  }, [fetchProductsFn, sortBy]);
 
   // Hook to handle infinite scrolling
   useInfiniteScroll({

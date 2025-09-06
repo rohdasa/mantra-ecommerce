@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { productService } from "../services/productService";
 import ProductList from "../components/ui/ProductList";
 import { useCallback, useEffect } from "react";
+import { TbCategory } from "react-icons/tb";
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -21,10 +22,22 @@ const CategoryPage = () => {
   );
 
   return (
-    <ProductList
-      fetchProductsFn={fetchProductsByCategory}
-      title={`Category: ${title}`}
-    />
+    <>
+      <div className="pb-0 grid bg-gray-50">
+        <div className="max-w-7xl px-0 md:px-2 lg:px-20">
+          <p className="flex gap-1 p-5 md:pl-8 pb-0 text-md font-bold md:text-2xl">
+            <TbCategory className="mt-1" />
+            {title}
+          </p>
+        </div>
+        <ProductList
+          className="pt-0 mt-1"
+          fetchProductsFn={fetchProductsByCategory}
+          title=""
+          topPaddingClass={true}
+        />
+      </div>
+    </>
   );
 };
 

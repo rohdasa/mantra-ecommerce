@@ -1,20 +1,6 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
 
-/**
- * Reusable Button Component
- *
- * Props:
- * - variant: 'primary', 'secondary', 'outline', 'ghost', 'danger'
- * - size: 'sm', 'md', 'lg'
- * - loading: boolean
- * - disabled: boolean
- * - children: button content
- * - className: additional CSS classes
- * - onClick: click handler
- * - type: 'button', 'submit', 'reset'
- */
-
 const Button = ({
   variant = "primary",
   size = "md",

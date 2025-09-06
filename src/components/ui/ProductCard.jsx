@@ -1,14 +1,13 @@
-// src/components/ui/ProductCard.jsx - Enhanced for your transformed product data
-import { Heart, Star, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import formatPrice from "../../utils/formatPrice";
 import RatingStars from "./shared/RatingStars";
 import WishlistButton from "./shared/WishlistButton";
+import useAuthStore from "../../store/authStore";
 
-const ProductCard = ({ product, className = "", renderAction }) => {
+const ProductCard = ({ product, className = "" }) => {
   const [imageLoading, setImageLoading] = useState(true);
-  const [imageError, setImageError] = useState(false);
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <Link
@@ -31,7 +30,6 @@ const ProductCard = ({ product, className = "", renderAction }) => {
               console.warn(
                 `Failed to load image for product ${product.id}: ${product.image}`
               );
-              setImageError(true);
               setImageLoading(false);
             }}
           />
@@ -62,7 +60,9 @@ const ProductCard = ({ product, className = "", renderAction }) => {
         </div>
 
         {/* Wishlist Button */}
-        <WishlistButton size={16} product={product} isCard />
+        {isAuthenticated && (
+          <WishlistButton size={16} product={product} isCard />
+        )}
       </div>
 
       {/* Product Info */}

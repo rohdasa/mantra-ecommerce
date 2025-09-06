@@ -1,9 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import {
-  Link,
-  useLocation as routeLocation,
-  useNavigate,
-} from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Bell,
   ChevronDown,

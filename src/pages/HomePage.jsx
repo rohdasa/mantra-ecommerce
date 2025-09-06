@@ -8,10 +8,12 @@ const Home = () => {
   return (
     <div>
       <HeroCarousel />
-      <ProductList
-        fetchProductsFn={productService.getAllProducts}
-        title="Products"
-      />
+      <div className="">
+        <ProductList
+          fetchProductsFn={productService.getAllProducts}
+          title="Products"
+        />
+      </div>
     </div>
   );
 };

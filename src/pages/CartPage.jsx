@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Button from "../components/ui/Button";
-import { ChevronRight, Plus, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import { TiDelete } from "react-icons/ti";
 import { useEffect } from "react";
@@ -12,9 +12,7 @@ import { MdAddShoppingCart } from "react-icons/md";
 function CartPage({ onOpenLogin }) {
   const { isAuthenticated } = useAuthStore();
 
-  let useCartStore;
-
-  useCartStore = getCartStore();
+  const useCartStore = getCartStore();
 
   const cart = useCartStore((state) => state.cart);
   const cartCount = cart.length;
@@ -84,12 +82,13 @@ function CartPage({ onOpenLogin }) {
   return (
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
       <div className="flex justify-between">
-        <h1 className="text-xl font-semibold mb-6 text-gray-800">
+        <h1 className="text-xs md:text-xl font-semibold mb-6 text-gray-800">
           Shopping Bag ({cartCount})
         </h1>
         <Link to="/products" className="" aria-label="Add more products">
-          <span className="flex text-md font-medium">
-            <MdAddShoppingCart className="pt-1" size={24} /> Add more products
+          <span className="flex text-xs md:text-lg font-medium">
+            <MdAddShoppingCart className="pt-1 text-base md:text-2xl" /> Add
+            more products
           </span>
         </Link>
       </div>
@@ -100,16 +99,19 @@ function CartPage({ onOpenLogin }) {
           {cart.map((item) => (
             <div key={item.id}>
               <div className="bg-white mb-2 p-4 rounded-lg shadow-sm border border-gray-200">
-                <div className="flex justify-between items-start md:items-center gap-4">
+                <div className="flex justify-between items-start gap-4">
                   <div className="flex items-start space-x-4">
-                    <Link className="p-5 border" to={`/products/${item.id}`}>
+                    <Link
+                      className="p-3 md:p-5 border"
+                      to={`/products/${item.id}`}
+                    >
                       <img
                         src={item.image}
                         alt={item.title}
-                        className="w-24 h-24 max-w-24 max-h-24 object-contain rounded"
+                        className="h-12 w-12 max-w-12 max-h-12 md:w-24 md:h-24 md:max-w-24 md:max-h-24 object-contain rounded"
                       />
                     </Link>
-                    <div>
+                    <div className="w-auto">
                       <h3 className="text-sm md:text-base font-medium text-gray-800 line-clamp-2">
                         {item.title}
                       </h3>
@@ -120,43 +122,61 @@ function CartPage({ onOpenLogin }) {
                         {formatPrice(item.price)}
                       </p>
 
-                      <div className="flex items-center space-x-2 mt-3">
-                        <Select
-                          label="Color"
-                          options={item.colors}
-                          value={item.selectedColor}
-                          onChange={(newColor) =>
-                            updateColor(item.id, newColor)
-                          }
-                          className="w-auto"
-                        />
+                      <div className="flex items-center mt-3 flex-wrap gap-2 md:gap-4">
+                        <div className="flex">
+                          <div className="selectLabel">
+                            <h3>Color:</h3>
+                          </div>
+                          <Select
+                            label="Color"
+                            options={item.colors}
+                            value={item.selectedColor}
+                            onChange={(newColor) =>
+                              updateColor(item.id, newColor)
+                            }
+                            className="w-28 max-w-28"
+                          />
+                        </div>
 
                         {item.selectedSize &&
                           (item.sizes.length === 1 ? (
-                            <p className="text-sm ml-2 p-1 border border-gray-300 bg-white rounded-md shadow-sm ">
-                              One Size
-                            </p>
+                            <div className="flex">
+                              <div className="selectLabel">
+                                <h3>Size:</h3>
+                              </div>
+                              <p className="block w-28 pr-8 pl-2 py-1 border border-gray-400 bg-slate-100 rounded-md shadow-sm text-sm text-gray-700">
+                                One Size
+                              </p>
+                            </div>
                           ) : (
-                            <Select
-                              label="Size"
-                              options={item.sizes}
-                              value={item.selectedSize}
-                              onChange={(newSize) =>
-                                updateSize(item.id, newSize)
-                              }
-                              className="w-28"
-                            />
+                            <div className="flex">
+                              <div className="selectLabel">
+                                <h3>Size:</h3>
+                              </div>
+                              <Select
+                                label="Size"
+                                options={item.sizes}
+                                value={item.selectedSize}
+                                onChange={(newSize) =>
+                                  updateSize(item.id, newSize)
+                                }
+                                className="w-28 max-w-28"
+                              />
+                            </div>
                           ))}
                       </div>
 
                       {/* Quantity controls */}
-                      <div className="flex items-center space-x-2 mt-3">
+                      <div className="flex items-center mt-3">
+                        <div className="selectLabel">
+                          <h3>Qty:</h3>
+                        </div>
                         <Select
                           label="Qty"
                           options={[1, 2, 3, 4, 5]}
                           value={item.quantity}
                           onChange={(newQty) => updateQuantity(item.id, newQty)}
-                          className="w-24"
+                          className="w-28 max-w-28"
                         />
                       </div>
                     </div>
@@ -164,9 +184,8 @@ function CartPage({ onOpenLogin }) {
 
                   {/* Remove */}
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    onClick={() => {
+                      if (!_hasHydrated) return;
                       if (confirm("Remove this product from your cart?")) {
                         removeFromCart(item.id);
                       }

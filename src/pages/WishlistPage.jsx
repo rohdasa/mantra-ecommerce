@@ -6,6 +6,7 @@ import ProductList from "../components/ui/ProductList";
 import { useEffect } from "react";
 import { TiDelete } from "react-icons/ti";
 import { getWishlistStore } from "../store/wishlistStore";
+import { BsBagHeart } from "react-icons/bs";
 
 function WishlistPage({ onOpenLogin }) {
   const { isAuthenticated } = useAuthStore();
@@ -52,33 +53,28 @@ function WishlistPage({ onOpenLogin }) {
           </Button>
         </div>
       ) : wishlistCount > 0 ? (
-        <ProductList
-          title="Your Wishlist"
-          fetchProductsFn={() =>
-            Promise.resolve({
-              products: wishlist,
-              pagination: {
-                currentPage: 1,
-                hasMore: false,
-                totalProducts: wishlist.length,
-              },
-            })
-          }
-          renderAction={(product) => (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                if (confirm("Remove this product from your cart?")) {
-                  removeFromWishlist(product.id);
-                }
-              }}
-              className="text-red-600 hover:text-white hover:bg-red-600 border border-red-600 p-2 rounded-md transition"
-              title="Remove from cart"
-            >
-              <TiDelete size={20} />
-            </button>
-          )}
-        />
+        <div className="pb-0 grid bg-gray-50">
+          <div className="max-w-7xl px-0 md:px-2 lg:px-20">
+            <p className="flex gap-1 p-5 md:pl-8 pb-0 text-md font-bold md:text-2xl">
+              <BsBagHeart className="mt-1" />
+              Your Wishlist
+            </p>
+          </div>
+          <ProductList
+            title=""
+            fetchProductsFn={() =>
+              Promise.resolve({
+                products: wishlist,
+                pagination: {
+                  currentPage: 1,
+                  hasMore: false,
+                  totalProducts: wishlist.length,
+                },
+              })
+            }
+            topPaddingClass={true}
+          />
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-100 text-center p-4">
           <ShoppingBag size={64} className="text-gray-400 mb-4" />

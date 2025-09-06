@@ -1,6 +1,6 @@
 // src/pages/ProductDetail.jsx
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import {
   Truck,
   RotateCcw,
@@ -17,8 +17,9 @@ import formatPrice from "../utils/formatPrice";
 import RatingStars from "../components/ui/shared/RatingStars";
 import WishlistButton from "../components/ui/shared/WishlistButton";
 import AddToCartButton from "../components/ui/shared/AddToCartButton";
+import { FaCaretRight } from "react-icons/fa";
 
-const ProductDetail = () => {
+const ProductDetail = ({ onOpenLogin }) => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -32,7 +33,6 @@ const ProductDetail = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const location = useLocation();
-  const query = new URLSearchParams(location.search);
 
   // Mock additional images for gallery
   const [productImages, setProductImages] = useState([]);
@@ -62,10 +62,21 @@ const ProductDetail = () => {
 
       setProduct(productData);
 
-      // Create mock additional images (in real app, these would come from API)
+      // Fetch related products based on category
+      const related = await productService.getProductsByCategory(
+        productData.category
+      );
+      // console.log("related:", related);
+      // Filter out current product from related products
+      const filteredRelated = related.products.filter(
+        (p) => p.id !== productData.id
+      );
+      setRelatedProducts(filteredRelated);
+
+      // Mock additional images
       const mockImages = [
         productData.image,
-        productData.image, // Same image for demo - in real app would be different angles
+        productData.image,
         productData.image,
         productData.image,
       ];
@@ -165,8 +176,8 @@ const ProductDetail = () => {
                 {selectedImageIndex + 1}
               </span>
               {/* <span className="absolute top-2 left-2 bg-black text-white px-2 py-1 text-xs rounded">
-                Main Image #{selectedImageIndex + 1}
-              </span> */}{" "}
+                  Main Image #{selectedImageIndex + 1}
+                </span> */}{" "}
             </div>
 
             {/* Thumbnail Images */}
@@ -349,6 +360,7 @@ const ProductDetail = () => {
                     selectedColor,
                     selectedSize,
                   }}
+                  onOpenLogin={onOpenLogin}
                   alwaysVisible
                   className="py-3"
                 />
@@ -405,13 +417,25 @@ const ProductDetail = () => {
               You Might Also Like
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
+              {relatedProducts.slice(0, 4).map((relatedProduct) => (
                 <ProductCard
                   key={relatedProduct.variantId || relatedProduct.id}
                   product={relatedProduct}
                 />
               ))}
             </div>
+            {relatedProducts.length > 4 && (
+              <div className="mt-6 flex justify-center">
+                <Link
+                  to={`/category/${product.category.toLowerCase()}`}
+                  className="flex items-center space-x-1 p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all relative"
+                  aria-label="View more similar products"
+                >
+                  <FaCaretRight size={18} />
+                  View More in {product.category}
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -80,7 +80,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/products/" element={<ProductsPage />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route
+            path="/products/:id"
+            element={
+              <ProductDetail onOpenLogin={() => setActiveModal("login")} />
+            }
+          />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route
             path="/wishlist"

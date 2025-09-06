@@ -1,23 +1,29 @@
-// components/ui/ProductList.jsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
 import Loading from "./Loading";
 import { Grid2X2, Grid3X3, Loader2, ShoppingCart } from "lucide-react";
 import { useProductList } from "../../hooks/useProductList";
+import Select from "./shared/Select";
+import { sortProducts } from "../../utils/sortProducts";
 
-const MAX_PRODUCTS = 20;
+// const MAX_PRODUCTS = 20;
 
 const layouts = {
   compact: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
   wide: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
 };
 
-const ProductList = ({ fetchProductsFn, title = "Products", renderAction }) => {
+const ProductList = ({
+  fetchProductsFn,
+  title = "Products",
+  topPaddingClass,
+}) => {
   const [gridCols, setGridCols] = useState("wide");
   const [isWideLayout, setIsWideLayout] = useState(true);
+  const [sortBy, setSortBy] = useState("");
 
   const { products, loading, loadingMore, error, pagination, reload } =
-    useProductList(fetchProductsFn);
+    useProductList(fetchProductsFn, sortBy);
 
   const decreaseGridSize = () => {
     setGridCols("compact");
@@ -28,6 +34,13 @@ const ProductList = ({ fetchProductsFn, title = "Products", renderAction }) => {
     setGridCols("wide");
     setIsWideLayout(true);
   };
+
+  const sortOptions = [
+    "A-Z",
+    "Price: Low to High",
+    "Price: High to Low",
+    "Better Discount",
+  ];
 
   if (loading) {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -56,19 +69,25 @@ const ProductList = ({ fetchProductsFn, title = "Products", renderAction }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className={`py-12 ${topPaddingClass ? "pt-3" : "pt-12"}`}>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="flex text-xl font-bold text-gray-900">{title}</h2>
+            <h2 className="flex text-xs md:text-xl font-bold text-gray-900">
+              {title}
+            </h2>
 
             <div className="flex items-center gap-4">
-              <div className="space-x-2 text-sm text-gray-700">
+              <div className="flex space-x-1 text-sm text-gray-700">
                 <button className="px-2 py-1 rounded-md border border-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors">
                   Filter
                 </button>
-                <button className="px-2 py-1 rounded-md border border-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors">
-                  Sort
-                </button>
+                <Select
+                  label="Sort by"
+                  options={sortOptions}
+                  value={sortBy}
+                  onChange={setSortBy}
+                  className=""
+                />
               </div>
               <div className="flex items-center space-x-0 text-gray-700">
                 <button
@@ -101,11 +120,7 @@ const ProductList = ({ fetchProductsFn, title = "Products", renderAction }) => {
 
           <div className={`grid gap-6 ${layouts[gridCols]}`}>
             {products.map((product, index) => (
-              <ProductCard
-                key={`${product.id}-${index}`}
-                product={product}
-                renderAction={renderAction}
-              />
+              <ProductCard key={`${product.id}-${index}`} product={product} />
             ))}
           </div>
 

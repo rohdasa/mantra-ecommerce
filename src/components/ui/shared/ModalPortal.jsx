@@ -1,4 +1,3 @@
-// src/components/ui/ModalPortal.jsx
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 

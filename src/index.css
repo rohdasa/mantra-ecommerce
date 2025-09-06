@@ -343,3 +343,8 @@ input:focus-visible {
     color-scheme: dark;
   }
 }
+
+.selectLabel {
+  margin-right: 10px;
+  width: 40px;
+}

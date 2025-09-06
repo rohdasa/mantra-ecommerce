@@ -6,6 +6,7 @@ import {
   getRandomColors,
   getSizesForCategory,
 } from "./productHelpers";
+import { sortProducts } from "../utils/sortProducts";
 
 // We'll use FakeStore API for now - it has good product data
 const BASE_URL = "https://fakestoreapi.com";
@@ -58,7 +59,7 @@ const transformProduct = (product) => {
 // Main API functions
 export const productService = {
   // Get all products with pagination simulation
-  getAllProducts: async (page = 1, limit = 10) => {
+  getAllProducts: async (page = 1, limit = 10, sortBy = "") => {
     try {
       const response = await api.get("/products");
       const productsArray = response?.data;
@@ -69,7 +70,9 @@ export const productService = {
 
       const allProducts = productsArray.map(transformProduct);
 
-      const { items, pagination } = paginate(allProducts, page, limit);
+      const sortedProducts = sortProducts(allProducts, sortBy);
+
+      const { items, pagination } = paginate(sortedProducts, page, limit);
       return { products: items, pagination };
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -78,7 +81,12 @@ export const productService = {
   },
 
   // Get products by category
-  getProductsByCategory: async (category, page = 1, limit = 10) => {
+  getProductsByCategory: async (
+    category,
+    page = 1,
+    limit = 10,
+    sortBy = ""
+  ) => {
     try {
       const response = await api.get(`/products/category/${category}`);
       const productsArray = response.data;
@@ -88,19 +96,6 @@ export const productService = {
         throw new Error("Unexpected product data format from API.");
       }
 
-      // if (productsArray.length === 0) {
-      //   console.warn(`No products found for category: ${category}`);
-      //   return {
-      //     products: [],
-      //     pagination: {
-      //       currentPage: page,
-      //       totalPages: 0,
-      //       totalProducts: 0,
-      //       hasMore: false,
-      //       limit,
-      //     },
-      //   };
-      // }
       const products = productsArray.map(transformProduct);
 
       const { items, pagination } = paginate(products, page, limit);
